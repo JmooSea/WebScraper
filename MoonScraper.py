@@ -11,13 +11,28 @@ import os
 from selenium import webdriver
 
 
+URL = 'https://pracuj.pl/praca/'
 
-URL = 'https://pracuj.pl/praca'
 
+
+
+# =============================================================================
+# 
+# Use Babel:
+# 
+# >>> import babel.dates
+# >>> import datetime
+# >>> now = datetime.datetime.now()
+# >>> print babel.dates.format_date(now, 'd MMMM yyyy', locale='pl_PL')
+# =============================================================================
 
 
 def PreprocessURL(keywords, location=None):
     global URL
+    
+    if URL[-1] != "/":
+        URL += "/"
+        
     if len(keywords) > 1:
         keywords = "-x44-".join(keywords)
     else:
@@ -36,21 +51,27 @@ def SeleniumActions(URL):
     driver.get(URL)
     result_list = driver.find_elements_by_class_name("results__list-container-item")
     QueryResults = [] 
-    for res in results:
+    for res in result_list:
         attributes = res.text.split(sep='\n')
+        attributes = list(filter(lambda x: x not in ['Zobacz profil', 'Super oferta'], attributes))
         link = res.find_element_by_class_name('offer__click-area').get_property('href')
         
         storeAttributes = dict()
         storeAttributes['Title'] = attributes[0]
-        storeAttributes['Company'] = attributes[2]
-        storeAttributes['Location']
-        storeAttributes['Info'] = attributes[4:-2]
-        storeAttributes['DatePublished'] = attributes[-2]
+        storeAttributes['Company'] = attributes[1]
+        storeAttributes['Info'] = attributes[2:-2]
+        storeAttributes['DatePublished'] = attributes[-2].split(sep=":")[1].strip()
+        storeAttributes['Link'] = link
         QueryResults.append(storeAttributes)          
         
     driver.quit()
     
     return QueryResults
+def PrettyPrint(results):
+    for res in results:
+        for key in res:
+            print(key, '\n', res[key])
+        print(2*'\n')
 
 if __name__ == '__main__':
 
@@ -60,7 +81,7 @@ if __name__ == '__main__':
     parser.add_argument('-k', '--keywords', action='append', type=str, help='Main keywords')
     parser.add_argument('-sp' ,'--savepath', type=str, help='path to save directory')
     args = parser.parse_args()
-    result = SeleniumActions(PreprocessURL(URL))
+    result = SeleniumActions(PreprocessURL(args.keywords, location=args.loc))
     if args.savepath:
         save_dir = os.path.dirname(args.save_path)
         if os.path.isfile(args.savepath):
@@ -72,6 +93,6 @@ if __name__ == '__main__':
         with open(args.savepath, 'w') as file:
             file.write(result)
         
-    print(result)
+    PrettyPrint(result)
 
     
