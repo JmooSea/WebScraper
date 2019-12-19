@@ -14,19 +14,6 @@ from selenium import webdriver
 URL = 'https://pracuj.pl/praca/'
 
 
-
-
-# =============================================================================
-# 
-# Use Babel:
-# 
-# >>> import babel.dates
-# >>> import datetime
-# >>> now = datetime.datetime.now()
-# >>> print babel.dates.format_date(now, 'd MMMM yyyy', locale='pl_PL')
-# =============================================================================
-
-
 def PreprocessURL(keywords, location=None):
     global URL
     
