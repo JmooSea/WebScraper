@@ -6,13 +6,14 @@ Created on Mon Dec 16 18:14:41 2019
 @author: moon
 """
 
-import requests
-from bs4 import BeautifulSoup
 import argparse
 import os
+from selenium import webdriver
+
 
 
 URL = 'https://pracuj.pl/praca'
+
 
 
 def PreprocessURL(keywords, location=None):
@@ -28,28 +29,49 @@ def PreprocessURL(keywords, location=None):
     return URL
 
 
-def SoupActions(URL):
-    page = requests.get(URL)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    offers = soup.find_all(name="offer-details__text")
+def SeleniumActions(URL):
     
-    return offers
+    #define your own path to the driver
+    driver = webdriver.Firefox(executable_path='/home/moon/Downloads/Projekty_prog/WebScraper/geckodriver')
+    driver.get(URL)
+    result_list = driver.find_elements_by_class_name("results__list-container-item")
+    QueryResults = [] 
+    for res in results:
+        attributes = res.text.split(sep='\n')
+        link = res.find_element_by_class_name('offer__click-area').get_property('href')
+        
+        storeAttributes = dict()
+        storeAttributes['Title'] = attributes[0]
+        storeAttributes['Company'] = attributes[2]
+        storeAttributes['Location']
+        storeAttributes['Info'] = attributes[4:-2]
+        storeAttributes['DatePublished'] = attributes[-2]
+        QueryResults.append(storeAttributes)          
+        
+    driver.quit()
     
+    return QueryResults
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(prog="MoonScraper", 
-                                 description="Specify Location and Keywords to get info")
+                                 description="Specify Location of job offer and Keywords")
     parser.add_argument('-l', '--loc', type=str, help='Location of work offer')
     parser.add_argument('-k', '--keywords', action='append', type=str, help='Main keywords')
     parser.add_argument('-sp' ,'--savepath', type=str, help='path to save directory')
     args = parser.parse_args()
-    print(args)
+    result = SeleniumActions(PreprocessURL(URL))
     if args.savepath:
         save_dir = os.path.dirname(args.save_path)
-        if not os.path.exists(save_dir):
+        if os.path.isfile(args.savepath):
+            print("File with that name already exists!")
+        
+        elif not os.path.exists(save_dir):
                 print(f"Save directory doesn't exist. Making {save_dir}")
-                os.makedirs(save_dir)
-    print(SoupActions(PreprocessURL(URL)))
+                os.makedirs(save_dir)            
+        with open(args.savepath, 'w') as file:
+            file.write(result)
+        
+    print(result)
 
     
