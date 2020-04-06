@@ -34,7 +34,7 @@ def PreprocessURL(keywords, location=None):
 def SeleniumActions(URL):
     
     #define your own path to the driver
-    driver = webdriver.Firefox(executable_path='/home/moon/Downloads/Projekty_prog/WebScraper/geckodriver')
+    driver = webdriver.Firefox(executable_path='path/to/geckodriver')
     driver.get(URL)
     result_list = driver.find_elements_by_class_name("results__list-container-item")
     QueryResults = [] 
